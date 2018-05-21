@@ -1,0 +1,3 @@
+Flask==1.0
+youtube-dl==2018.5.18
+ffprobe==0.5

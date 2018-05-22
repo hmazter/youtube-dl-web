@@ -1,5 +1,8 @@
 import youtube_dl
 import subprocess
+import click
+from flask.cli import with_appcontext
+from .db import (db, Job)
 
 
 def download(url, file_type, start, end):
@@ -11,7 +14,6 @@ def download(url, file_type, start, end):
 
     if file_type == 'mp4':
         options['format'] = 'mp4'
-        mime = 'video/mp4'
 
     elif file_type == 'mp3':
         options['postprocessors'].append({
@@ -19,7 +21,6 @@ def download(url, file_type, start, end):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         })
-        mime = 'audio/mp3'
 
     else:
         return 'Invalid file type'
@@ -45,7 +46,6 @@ def download(url, file_type, start, end):
     return {
         'downloaded_file': downloaded_file,
         'filename': video_title + '.' + file_type,
-        'mime': mime
     }
 
 
@@ -67,3 +67,25 @@ def slice_media(downloaded_file, start=None, end=None):
         raise RuntimeError('Slice command failed')
 
     return outfile
+
+
+@click.command('run-job')
+@with_appcontext
+def download_command():
+    """Run the next download job"""
+    job = Job.query.filter_by(state='created').limit(1).first()
+
+    if job is None:
+        click.echo("No unhandled job found")
+        return
+
+    result = download(job.url, job.file_type, job.start, job.end)
+
+    job.downloaded_file = result['downloaded_file']
+    job.filename = result['filename']
+    job.state = 'done'
+
+    db.session.add(job)
+    db.session.commit()
+
+    click.echo('Done')

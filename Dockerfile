@@ -1,6 +1,6 @@
 FROM python:3-alpine
 
-RUN apk update && apk add ffmpeg
+RUN apk update && apk add ffmpeg postgresql-dev python3-dev gcc musl-dev
 
 WORKDIR /app
 

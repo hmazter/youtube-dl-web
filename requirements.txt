@@ -2,3 +2,5 @@ Flask==1.0.*
 gunicorn==19.8.*
 youtube-dl==2018.5.18
 ffprobe==0.5
+flask-sqlalchemy==2.3.2
+psycopg2==2.7.4

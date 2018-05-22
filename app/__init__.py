@@ -2,13 +2,16 @@ import os
 
 from flask import Flask
 
+from app import db
+from .download import download_command
+
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL'),
     )
 
     if test_config is None:
@@ -23,6 +26,10 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    db.init_app(app)
+
+    app.cli.add_command(download_command)
 
     from . import home
     app.register_blueprint(home.bp)

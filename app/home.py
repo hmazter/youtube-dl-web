@@ -1,7 +1,7 @@
 from flask import (
-    Blueprint, render_template, request, send_file
+    Blueprint, render_template, request, send_file, redirect, url_for
 )
-from . import download as dl
+from .db import (db, Job)
 
 bp = Blueprint('home', __name__)
 
@@ -12,7 +12,7 @@ def index():
 
 
 @bp.route('/', methods=['POST'])
-def download():
+def create():
     url = request.form['url']
     file_type = request.form['type']
 
@@ -26,9 +26,26 @@ def download():
     else:
         end = request.form['end']
 
-    result = dl.download(url, file_type, start, end)
+    job = Job(url=url, file_type=file_type, start=start, end=end, state='created')
+    db.session.add(job)
+    db.session.commit()
 
-    return send_file(result['downloaded_file'],
-                     mimetype=result['mime'],
+    return redirect(url_for('home.view', id=job.id))
+
+
+@bp.route('/<int:id>', methods=['GET'])
+def view(id):
+    job = Job.query.get(id)
+    return render_template('home/view.html',
+                           job=job,
+                           download_url=url_for('home.download', id=job.id))
+
+
+@bp.route('/<int:id>/download', methods=['GET'])
+def download(id):
+    job = Job.query.get(id)
+
+    return send_file(job.downloaded_file,
+                     mimetype=job.mime(),
                      as_attachment=True,
-                     attachment_filename=result['filename'])
+                     attachment_filename=job.filename)

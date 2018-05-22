@@ -1,6 +1,7 @@
 import youtube_dl
 import subprocess
 import click
+import time
 from flask.cli import with_appcontext
 from .db import (db, Job)
 
@@ -73,19 +74,21 @@ def slice_media(downloaded_file, start=None, end=None):
 @with_appcontext
 def download_command():
     """Run the next download job"""
-    job = Job.query.filter_by(state='created').limit(1).first()
+    while True:
+        job = Job.query.filter_by(state='created').limit(1).first()
 
-    if job is None:
-        click.echo("No unhandled job found")
-        return
+        if job is None:
+            click.echo("No unhandled job found, sleeping")
+            time.sleep(3)
 
-    result = download(job.url, job.file_type, job.start, job.end)
+        else:
+            result = download(job.url, job.file_type, job.start, job.end)
 
-    job.downloaded_file = result['downloaded_file']
-    job.filename = result['filename']
-    job.state = 'done'
+            job.downloaded_file = result['downloaded_file']
+            job.filename = result['filename']
+            job.state = 'done'
 
-    db.session.add(job)
-    db.session.commit()
+            db.session.add(job)
+            db.session.commit()
 
-    click.echo('Done')
+            click.echo('Done')

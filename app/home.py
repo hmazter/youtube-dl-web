@@ -16,7 +16,17 @@ def download():
     url = request.form['url']
     file_type = request.form['type']
 
-    result = dl.download(url, file_type)
+    if 'from_start' in request.form:
+        start = None
+    else:
+        start = request.form['start']
+
+    if 'to_end' in request.form:
+        end = None
+    else:
+        end = request.form['end']
+
+    result = dl.download(url, file_type, start, end)
 
     return send_file(result['downloaded_file'],
                      mimetype=result['mime'],

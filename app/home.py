@@ -16,12 +16,12 @@ def download():
     url = request.form['url']
     file_type = request.form['type']
 
-    if 'from_start' in request.form:
+    if request.form['start'] == '':
         start = None
     else:
         start = request.form['start']
 
-    if 'to_end' in request.form:
+    if request.form['end'] == '':
         end = None
     else:
         end = request.form['end']

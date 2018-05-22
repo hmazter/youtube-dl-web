@@ -12,3 +12,4 @@ services:
     environment:
       FLASK_APP: app
       FLASK_ENV: development
+      PORT: 5000

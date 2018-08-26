@@ -45,6 +45,8 @@ def view(id):
 def download(id):
     job = Job.query.get(id)
 
+    # TODO: job.downloaded_file is in another container and not reachable from here
+
     return send_file(job.downloaded_file,
                      mimetype=job.mime(),
                      as_attachment=True,

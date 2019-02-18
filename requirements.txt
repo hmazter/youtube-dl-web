@@ -1,3 +1,4 @@
-Flask==1.0
+Flask==1.0.*
+gunicorn==19.8.*
 youtube-dl==2018.5.18
 ffprobe==0.5

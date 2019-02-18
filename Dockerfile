@@ -4,8 +4,9 @@ RUN apk update && apk add ffmpeg
 
 WORKDIR /app
 
-COPY . /app
-
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD flask run --host=0.0.0.0 --port=$PORT
+COPY . .
+
+CMD ["gunicorn", "-c", "python:config.gunicorn", "app:create_app()"]

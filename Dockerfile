@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["gunicorn", "-c", "python:config.gunicorn", "app:create_app()"]
+CMD gunicorn --bind 0.0.0.0:$PORT -c python:config.gunicorn "app:create_app()"

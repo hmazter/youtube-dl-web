@@ -23,6 +23,15 @@ resource "heroku_app" "production" {
 # Bucket
 resource "aws_s3_bucket" "storage" {
   bucket = "youtube-dl-storage"
+  acl    = "private"
+
+  lifecycle_rule {
+    enabled = false
+
+    expiration {
+      days = 1
+    }
+  }
 }
 
 resource "aws_iam_user" "app-user" {

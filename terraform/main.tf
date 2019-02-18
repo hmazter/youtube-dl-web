@@ -20,6 +20,12 @@ resource "heroku_app" "production" {
   }
 }
 
+# Database
+resource "heroku_addon" "database" {
+  app = "${heroku_app.production.id}"
+  plan = "heroku-postgresql:hobby-dev"
+}
+
 # Bucket
 resource "aws_s3_bucket" "storage" {
   bucket = "youtube-dl-storage"
@@ -34,6 +40,7 @@ resource "aws_s3_bucket" "storage" {
   }
 }
 
+# AWS User
 resource "aws_iam_user" "app-user" {
   name = "youtube-dl-app"
 }
@@ -42,6 +49,7 @@ resource "aws_iam_access_key" "app-user" {
   user = "${aws_iam_user.app-user.name}"
 }
 
+# Bucket policy with access for user
 resource "aws_s3_bucket_policy" "storage-policy" {
   bucket = "${aws_s3_bucket.storage.id}"
 

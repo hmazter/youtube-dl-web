@@ -2,3 +2,7 @@ build:
   docker:
     web: Dockerfile.web
     worker: Dockerfile.worker
+release:
+  command:
+    - flask init-db
+  image: worker

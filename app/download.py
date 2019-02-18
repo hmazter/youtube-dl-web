@@ -4,19 +4,20 @@ import click
 import time
 from flask.cli import with_appcontext
 from .db import (db, Job)
+from .s3 import (upload_file)
 
 
-def download(url, file_type, start, end):
+def download(job):
     options = {
         'outtmpl': '/tmp/%(id)s.%(ext)s',
         'postprocessors': [],
         'postprocessor_args': [],
     }
 
-    if file_type == 'mp4':
+    if job.file_type == 'mp4':
         options['format'] = 'mp4'
 
-    elif file_type == 'mp3':
+    elif job.file_type == 'mp3':
         options['postprocessors'].append({
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -29,7 +30,7 @@ def download(url, file_type, start, end):
     print(options)
 
     with youtube_dl.YoutubeDL(options) as ydl:
-        result = ydl.extract_info(url, download=True)
+        result = ydl.extract_info(job.url, download=True)
         if 'entries' in result:
             # Can be a playlist or a list of videos
             video = result['entries'][0]
@@ -39,14 +40,17 @@ def download(url, file_type, start, end):
 
     video_id = video['id']
     video_title = video['title']
-    downloaded_file = '/tmp/' + video_id + '.' + file_type
+    downloaded_file = '/tmp/' + video_id + '.' + job.file_type
 
-    if start is not None or end is not None:
-        downloaded_file = slice_media(downloaded_file, start, end)
+    if job.start is not None or job.end is not None:
+        downloaded_file = slice_media(downloaded_file, job.start, job.end)
+
+    remote_filename = str(job.id) + '.' + job.file_type
+    upload_file(downloaded_file, remote_filename)
 
     return {
-        'downloaded_file': downloaded_file,
-        'filename': video_title + '.' + file_type,
+        'downloaded_file': remote_filename,
+        'filename': video_title + '.' + job.file_type,
     }
 
 
@@ -82,7 +86,7 @@ def download_command():
             time.sleep(3)
 
         else:
-            result = download(job.url, job.file_type, job.start, job.end)
+            result = download(job)
 
             job.downloaded_file = result['downloaded_file']
             job.filename = result['filename']

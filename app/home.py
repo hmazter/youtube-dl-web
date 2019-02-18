@@ -2,6 +2,7 @@ from flask import (
     Blueprint, render_template, request, send_file, redirect, url_for
 )
 from .db import (db, Job)
+from .s3 import (download_file)
 
 bp = Blueprint('home', __name__)
 
@@ -45,9 +46,10 @@ def view(id):
 def download(id):
     job = Job.query.get(id)
 
-    # TODO: job.downloaded_file is in another container and not reachable from here
+    local_file = '/tmp/' + str(job.id)
+    download_file(job.downloaded_file, local_file)
 
-    return send_file(job.downloaded_file,
+    return send_file(local_file,
                      mimetype=job.mime(),
                      as_attachment=True,
                      attachment_filename=job.filename)
